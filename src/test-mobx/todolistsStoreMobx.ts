@@ -4,7 +4,7 @@ import {todolistsAPI, TodolistType} from "../api/todolists-api";
 
 
 class TodolistsStore {
-    initialState: Array<TodolistDomainType> = []
+    todolists: Array<TodolistDomainType> = []
 
     constructor() {
         makeAutoObservable(this)
@@ -13,16 +13,16 @@ class TodolistsStore {
     setTodolists = async () => {
         const tasks = await todolistsAPI.getTodolists().then(res => res.data);
         runInAction(() => {
-            this.initialState = tasks.map(tl => ({...tl, filter: 'all'}))
+            this.todolists = tasks.map(tl => ({...tl, filter: 'all'}))
         })
     }
 
     removeTodolist = async (todolistId: string) => {
         const resultCode = await todolistsAPI.deleteTodolist(todolistId).then(res => res.data.resultCode);
         if (resultCode === 0) {
-            const index = this.initialState.findIndex(tl => tl.id === todolistId);
+            const index = this.todolists.findIndex(tl => tl.id === todolistId);
             runInAction(() => {
-                this.initialState.splice(index, 1)
+                this.todolists.splice(index, 1)
             })
         }
     }
@@ -32,7 +32,7 @@ class TodolistsStore {
             const todolistResponse: TodolistType = await todolistsAPI.createTodolist(todolistTitle).then(res => res.data.data.item);
             const newTodolist: TodolistDomainType = {...todolistResponse, filter: 'all'}
             runInAction(() => {
-                this.initialState.unshift(newTodolist);
+                this.todolists.unshift(newTodolist);
             })
         } catch (e) {
             console.log(e)
@@ -43,9 +43,9 @@ class TodolistsStore {
         try {
             const res = await todolistsAPI.updateTodolist(todolistId, title);
             if (res.data.resultCode === 0) {
-                const index = this.initialState.findIndex(tl => tl.id === todolistId);
+                const index = this.todolists.findIndex(tl => tl.id === todolistId);
                 runInAction(() => {
-                    this.initialState[index].title = title;
+                    this.todolists[index].title = title;
                 })
             }
         } catch (e) {

@@ -4,14 +4,12 @@ import {observer} from "mobx-react";
 
 export const TodolistTestMobx = observer(() => {
 
-
-
     const loadTodoList = () => {
         todolistsStore.setTodolists()
     }
 
     const log = () => {
-        const tdId = todolistsStore.initialState.map(tl => tl.title)
+        const tdId = todolistsStore.todolists.map(tl => tl.title)
         console.log(tdId)
     }
 
