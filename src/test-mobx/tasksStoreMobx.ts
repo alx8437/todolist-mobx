@@ -1,6 +1,6 @@
 import {TasksStateType, UpdateDomainTaskModelType} from "../features/TodolistsList/tasks-reducer";
-import {makeAutoObservable} from "mobx";
-import {TaskType, todolistsAPI, UpdateTaskModelType} from "../api/todolists-api";
+import {makeAutoObservable, runInAction} from "mobx";
+import {TaskType, todolistsAPI, TodolistType, UpdateTaskModelType} from "../api/todolists-api";
 import {TodolistDomainType} from "../features/TodolistsList/todolists-reducer";
 
 class tasksStoreMobx {
@@ -15,7 +15,10 @@ class tasksStoreMobx {
             const result = await todolistsAPI.deleteTask(todolistId, taskId)
             if (result.data.resultCode === 0) {
                 const index = this.tasks[todolistId].findIndex(t => t.id === taskId)
-                this.tasks[todolistId].splice(index, 1)
+                runInAction(() => {
+                    this.tasks[todolistId].splice(index, 1)
+                })
+
             }
         } catch (e) {
             console.log(e)
@@ -26,7 +29,9 @@ class tasksStoreMobx {
         try {
             const response = await todolistsAPI.createTask(todolistId, title);
             if (response.data.resultCode === 0) {
-                this.tasks[todolistId].push(response.data.data.item);
+                runInAction(() => {
+                    this.tasks[todolistId].push(response.data.data.item);
+                })
             }
         } catch (e) {
             console.log(e)
@@ -55,7 +60,9 @@ class tasksStoreMobx {
             const response = await todolistsAPI.updateTask(todolistId, taskId, apiModel);
             if (response.data.resultCode === 0) {
                 const index = this.tasks[todolistId].findIndex(t => t.id === taskId);
-                this.tasks[todolistId][index].title = apiModel.title
+                runInAction(() => {
+                    this.tasks[todolistId][index].title = apiModel.title
+                })
             }
         } catch (e) {
             console.log(e)
@@ -70,14 +77,16 @@ class tasksStoreMobx {
         delete this.tasks[todolistId];
     }
 
-    setTodolists = (todolists: Array<TodolistDomainType>) => {
+    setTodolists = (todolists: Array<TodolistType>) => {
         todolists.forEach(tl => this.tasks[tl.id] = []);
     }
 
     setTasks = async (todolistId: string) => {
         const response = await todolistsAPI.getTasks(todolistId);
         if (response.data.resultCode === 0) {
-            this.tasks[todolistId] = response.data.items
+            runInAction(() => {
+                this.tasks[todolistId] = response.data.items
+            })
         }
     }
 

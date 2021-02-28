@@ -1,6 +1,7 @@
 import {TodolistDomainType} from "../features/TodolistsList/todolists-reducer";
 import {action, flow, makeAutoObservable, makeObservable, observable, runInAction} from "mobx";
 import {todolistsAPI, TodolistType} from "../api/todolists-api";
+import tasksStoreMobx from "./tasksStoreMobx";
 
 
 class TodolistsStore {
@@ -11,9 +12,10 @@ class TodolistsStore {
     }
 
     setTodolists = async () => {
-        const tasks = await todolistsAPI.getTodolists().then(res => res.data);
+        const todolists = await todolistsAPI.getTodolists().then(res => res.data);
         runInAction(() => {
-            this.todolists = tasks.map(tl => ({...tl, filter: 'all'}))
+            tasksStoreMobx.setTodolists(todolists)
+            this.todolists = todolists.map(tl => ({...tl, filter: 'all'}))
         })
     }
 

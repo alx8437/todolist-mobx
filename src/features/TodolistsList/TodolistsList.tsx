@@ -15,15 +15,28 @@ import {TaskStatuses} from '../../api/todolists-api'
 import {Grid, Paper} from '@material-ui/core'
 import {AddItemForm} from '../../components/AddItemForm/AddItemForm'
 import {Todolist} from './Todolist/Todolist'
+import {observer} from "mobx-react";
 
-export const TodolistsList: React.FC = () => {
-    const todolists = useSelector<AppRootStateType, Array<TodolistDomainType>>(state => state.todolists)
-    const tasks = useSelector<AppRootStateType, TasksStateType>(state => state.tasks)
+import todolistsStoreMobx from "../../test-mobx/todolistsStoreMobx";
+import tasksStoreMobx from "../../test-mobx/tasksStoreMobx";
+import {runInAction} from "mobx";
+
+
+export const TodolistsList: React.FC = observer(() => {
+    const todolists = todolistsStoreMobx.todolists
+    const tasks = tasksStoreMobx.tasks
+
+
+    // const todolists = useSelector<AppRootStateType, Array<TodolistDomainType>>(state => state.todolists)
+    // const tasks = useSelector<AppRootStateType, TasksStateType>(state => state.tasks)
     const dispatch = useDispatch()
 
     useEffect(() => {
-        const thunk = fetchTodolistsTC()
-        dispatch(thunk)
+        runInAction(() => {
+            todolistsStoreMobx.setTodolists()
+        })
+        // const thunk = fetchTodolistsTC()
+        // dispatch(thunk)
     }, [])
 
     const removeTask = useCallback(function (id: string, todolistId: string) {
@@ -97,4 +110,4 @@ export const TodolistsList: React.FC = () => {
             }
         </Grid>
     </>
-}
+})

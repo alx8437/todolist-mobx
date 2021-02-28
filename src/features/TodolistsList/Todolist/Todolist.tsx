@@ -8,6 +8,8 @@ import {TaskStatuses, TaskType} from '../../../api/todolists-api'
 import {FilterValuesType} from '../todolists-reducer'
 import {useDispatch} from 'react-redux'
 import {fetchTasksTC} from '../tasks-reducer'
+import tasksStoreMobx from "../../../test-mobx/tasksStoreMobx";
+import {runInAction} from "mobx";
 
 type PropsType = {
     id: string
@@ -24,12 +26,16 @@ type PropsType = {
 }
 
 export const Todolist = React.memo(function (props: PropsType) {
+
     console.log('Todolist called')
 
     const dispatch = useDispatch()
     useEffect(() => {
-        const thunk = fetchTasksTC(props.id)
-        dispatch(thunk)
+        runInAction(() => {
+            tasksStoreMobx.setTasks(props.id)
+        })
+        // const thunk = fetchTasksTC(props.id)
+        // dispatch(thunk)
     }, [])
 
     const addTask = useCallback((title: string) => {

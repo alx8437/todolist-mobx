@@ -10,7 +10,7 @@ function App() {
     return (
         <div className="App">
             <TodolistTestMobx />
-{/*            <AppBar position="static">
+            <AppBar position="static">
                 <Toolbar>
                     <IconButton edge="start" color="inherit" aria-label="menu">
                         <Menu/>
@@ -23,7 +23,7 @@ function App() {
             </AppBar>
             <Container fixed>
                 <TodolistsList/>
-            </Container>*/}
+            </Container>
         </div>
     )
 }
