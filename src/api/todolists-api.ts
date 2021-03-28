@@ -91,6 +91,5 @@ export type UpdateTaskModelType = {
 type GetTasksResponse = {
     resultCode: number
     error: string | null
-    totalCount: number
     items: TaskType[]
 }

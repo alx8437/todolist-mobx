@@ -4,7 +4,7 @@ import {TaskType, todolistsAPI, TodolistType, UpdateTaskModelType} from "../api/
 import {TodolistDomainType} from "../features/TodolistsList/todolists-reducer";
 
 class tasksStoreMobx {
-    tasks: TasksStateType = {};
+    _tasks: TasksStateType = {};
 
     constructor() {
         makeAutoObservable(this)
@@ -14,9 +14,9 @@ class tasksStoreMobx {
         try {
             const result = await todolistsAPI.deleteTask(todolistId, taskId)
             if (result.data.resultCode === 0) {
-                const index = this.tasks[todolistId].findIndex(t => t.id === taskId)
+                const index = this._tasks[todolistId].findIndex(t => t.id === taskId)
                 runInAction(() => {
-                    this.tasks[todolistId].splice(index, 1)
+                    this._tasks[todolistId].splice(index, 1)
                 })
 
             }
@@ -25,12 +25,12 @@ class tasksStoreMobx {
         }
     }
 
-    addTasks = async (title: string, todolistId: string) => {
+    addTask = async (title: string, todolistId: string) => {
         try {
             const response = await todolistsAPI.createTask(todolistId, title);
             if (response.data.resultCode === 0) {
                 runInAction(() => {
-                    this.tasks[todolistId].push(response.data.data.item);
+                    this._tasks[todolistId].push(response.data.data.item);
                 })
             }
         } catch (e) {
@@ -39,8 +39,9 @@ class tasksStoreMobx {
     }
 
     updateTask = async (taskId: string, domainModel: UpdateDomainTaskModelType, todolistId: string) => {
-        const task = this.tasks[todolistId].find(t => t.id === taskId);
+        const task = this._tasks[todolistId].find(t => t.id === taskId);
         if (!task) {
+
             //throw new Error("task not found in the state");
             console.warn('task not found in the state')
             return
@@ -58,10 +59,13 @@ class tasksStoreMobx {
 
         try {
             const response = await todolistsAPI.updateTask(todolistId, taskId, apiModel);
+            debugger
             if (response.data.resultCode === 0) {
-                const index = this.tasks[todolistId].findIndex(t => t.id === taskId);
+                const index = this._tasks[todolistId].findIndex(t => t.id === taskId);
                 runInAction(() => {
-                    this.tasks[todolistId][index].title = apiModel.title
+                    const updateTask = {...this._tasks[todolistId][index], ...domainModel}
+                    this._tasks[todolistId][index] = updateTask
+                    debugger
                 })
             }
         } catch (e) {
@@ -70,24 +74,26 @@ class tasksStoreMobx {
     }
 
     addTodolist = (todolistId: string) => {
-        this.tasks[todolistId] = [];
+        this._tasks[todolistId] = [];
     }
 
     removeTodolist = (todolistId: string) => {
-        delete this.tasks[todolistId];
+        delete this._tasks[todolistId];
     }
 
     setTodolists = (todolists: Array<TodolistType>) => {
-        todolists.forEach(tl => this.tasks[tl.id] = []);
+        todolists.forEach(tl => this._tasks[tl.id] = []);
     }
 
     setTasks = async (todolistId: string) => {
         const response = await todolistsAPI.getTasks(todolistId);
-        if (response.data.resultCode === 0) {
-            runInAction(() => {
-                this.tasks[todolistId] = response.data.items
-            })
-        }
+        runInAction(() => {
+            this._tasks = {...this._tasks, [todolistId]: response.data.items}
+        })
+    }
+
+    get tasks() {
+        return this._tasks
     }
 
 }

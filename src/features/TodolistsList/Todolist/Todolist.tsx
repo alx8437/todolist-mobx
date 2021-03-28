@@ -10,6 +10,7 @@ import {useDispatch} from 'react-redux'
 import {fetchTasksTC} from '../tasks-reducer'
 import tasksStoreMobx from "../../../test-mobx/tasksStoreMobx";
 import {runInAction} from "mobx";
+import {observer} from "mobx-react";
 
 type PropsType = {
     id: string
@@ -25,16 +26,15 @@ type PropsType = {
     filter: FilterValuesType
 }
 
-export const Todolist = React.memo(function (props: PropsType) {
+export const Todolist = observer(function (props: PropsType) {
 
     console.log('Todolist called')
 
-    const dispatch = useDispatch()
     useEffect(() => {
         runInAction(() => {
             tasksStoreMobx.setTasks(props.id)
         })
-        // const thunk = fetchTasksTC(props.id)
+        const thunk = fetchTasksTC(props.id)
         // dispatch(thunk)
     }, [])
 

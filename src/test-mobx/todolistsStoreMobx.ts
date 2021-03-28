@@ -1,11 +1,15 @@
-import {TodolistDomainType} from "../features/TodolistsList/todolists-reducer";
+import {
+    changeTodolistFilterAC,
+    FilterValuesType,
+    TodolistDomainType
+} from "../features/TodolistsList/todolists-reducer";
 import {action, flow, makeAutoObservable, makeObservable, observable, runInAction} from "mobx";
 import {todolistsAPI, TodolistType} from "../api/todolists-api";
 import tasksStoreMobx from "./tasksStoreMobx";
 
 
 class TodolistsStore {
-    todolists: Array<TodolistDomainType> = []
+    _todolists: Array<TodolistDomainType> = []
 
     constructor() {
         makeAutoObservable(this)
@@ -15,16 +19,17 @@ class TodolistsStore {
         const todolists = await todolistsAPI.getTodolists().then(res => res.data);
         runInAction(() => {
             tasksStoreMobx.setTodolists(todolists)
-            this.todolists = todolists.map(tl => ({...tl, filter: 'all'}))
+            this._todolists = todolists.map(tl => ({...tl, filter: 'all'}))
         })
     }
 
     removeTodolist = async (todolistId: string) => {
         const resultCode = await todolistsAPI.deleteTodolist(todolistId).then(res => res.data.resultCode);
         if (resultCode === 0) {
-            const index = this.todolists.findIndex(tl => tl.id === todolistId);
+            const index = this._todolists.findIndex(tl => tl.id === todolistId);
             runInAction(() => {
-                this.todolists.splice(index, 1)
+                tasksStoreMobx.removeTodolist(todolistId)
+                this._todolists.splice(index, 1)
             })
         }
     }
@@ -34,7 +39,8 @@ class TodolistsStore {
             const todolistResponse: TodolistType = await todolistsAPI.createTodolist(todolistTitle).then(res => res.data.data.item);
             const newTodolist: TodolistDomainType = {...todolistResponse, filter: 'all'}
             runInAction(() => {
-                this.todolists.unshift(newTodolist);
+                tasksStoreMobx.addTodolist(newTodolist.id);
+                this._todolists.unshift(newTodolist);
             })
         } catch (e) {
             console.log(e)
@@ -45,16 +51,26 @@ class TodolistsStore {
         try {
             const res = await todolistsAPI.updateTodolist(todolistId, title);
             if (res.data.resultCode === 0) {
-                const index = this.todolists.findIndex(tl => tl.id === todolistId);
+                const index = this._todolists.findIndex(tl => tl.id === todolistId);
                 runInAction(() => {
-                    this.todolists[index].title = title;
+                    this._todolists[index].title = title;
                 })
             }
         } catch (e) {
             console.log(e)
         }
-
     }
+
+    changeTodolistFilter = (todolistId: string, filter: FilterValuesType) => {
+        const index = this._todolists.findIndex(tl => tl.id === todolistId);
+        this._todolists[index].filter = filter
+    }
+
+    get todolists() {
+        return this._todolists
+    }
+    
+    
 }
 
 export default new TodolistsStore();
